@@ -28,13 +28,12 @@ type NewsShortDetailed struct {
 }
 
 type Comment struct {
-	ID          int    `json:"id"`
-	Content     string `json:"content"`
-	NewsID      int    `json:"news_id"`
-	AuthorID    int    `json:"author_id"`
-	AuthorName  string `json:"author_name"`
-	CreatedAt   int64  `json:"created_at"`
-	PublishedAt int64  `json:"published_at"`
+	ID        int    `json:"id"`
+	NewsID    int    `json:"news_id"`
+	CommentID int    `json:"comment_id"`
+	Content   string `json:"content"`
+	Author    string `json:"author"`
+	PubTime   int64  `json:"pub_time"`
 }
 
 func New() *API {
