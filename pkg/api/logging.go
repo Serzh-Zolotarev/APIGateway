@@ -25,7 +25,6 @@ func loggingMiddleware(next http.Handler) http.Handler {
 		ww := NewResponseWriterWrapper(w)
 		next.ServeHTTP(ww, r)
 
-		log.Println(time.Now().UTC().String(), "ip:", r.RemoteAddr, "Response Code:", ww.statusCode, "requestID:", r.Context().Value("requestID"))
-
+		log.Println(time.Now().UTC().String(), "ip:", r.RemoteAddr, "Response Code:", ww.statusCode, "request_id:", r.Context().Value("request_id"))
 	})
 }

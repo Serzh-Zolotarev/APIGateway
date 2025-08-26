@@ -9,15 +9,19 @@ import (
 
 func requestIdMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		requestID := r.URL.Query().Get("request_id")
+		var requestID string
+		if r.Context().Value("request_id") != nil {
+			requestID = r.Context().Value("request_id").(string)
+		}
 
 		if len(requestID) == 0 {
 			requestID = uuid.New().String()
 		}
 
-		ctx := context.WithValue(context.Background(), "requestID", requestID)
+		ctx := context.WithValue(r.Context(), "request_id", requestID)
 		log.Println("Request received with id ", requestID)
 
-		next.ServeHTTP(w, r.WithContext(ctx))
+		r = r.WithContext(ctx)
+		next.ServeHTTP(w, r)
 	})
 }

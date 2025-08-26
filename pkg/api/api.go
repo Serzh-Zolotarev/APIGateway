@@ -3,17 +3,18 @@ package api
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"github.com/gorilla/mux"
 	"io/ioutil"
 	"net/http"
 	"strconv"
-	"strings"
 	"sync"
 )
 
 const (
 	newsServiceURL     = "http://localhost:8080/news"
 	commentsServiceURL = "http://localhost:8082"
+	censorServiceURL   = "http://localhost:8083"
 )
 
 type API struct {
@@ -80,7 +81,21 @@ func (a *API) Router() *mux.Router {
 }
 
 func (a *API) newsHandler(w http.ResponseWriter, r *http.Request) {
-	resp, err := http.Get(newsServiceURL + strings.TrimLeft(r.URL.String(), "/"))
+	query := r.URL.Query()
+	s := query.Get("s")
+	page := query.Get("page")
+
+	if len(page) == 0 {
+		page = "1"
+	}
+
+	url := fmt.Sprintf("%s?page=%s", newsServiceURL, page)
+
+	if len(s) != 0 {
+		url += fmt.Sprintf("&s=%s", s)
+	}
+
+	resp, err := http.Get(url)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -199,6 +214,17 @@ func (a *API) newsAddCommentHandler(w http.ResponseWriter, r *http.Request) {
 	marshal, err := json.Marshal(comm)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	censorResp, err := http.Post(censorServiceURL+"/", "application/json", bytes.NewReader(marshal))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if censorResp.StatusCode != http.StatusOK {
+		http.Error(w, "failed censoring", censorResp.StatusCode)
 		return
 	}
 
